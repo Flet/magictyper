@@ -1,0 +1,37 @@
+{
+  "name": "magictyper",
+  "version": "1.0.0",
+  "author": "Dan Flettre <flettre@gmail.com>",
+  "bugs": {
+    "url": "https://github.com/Flet/magictyper/issues"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.1",
+    "phaser": "Flet/phaser#KeyComboMatchEvent-fix",
+    "standard": "*",
+    "tap-spec": "^4.0.2",
+    "tape": "^4.0.0",
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.9.7"
+  },
+  "homepage": "https://github.com/Flet/magictyper",
+  "keywords": [],
+  "license": "ISC",
+  "main": "index.js",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Flet/magictyper.git"
+  },
+  "scripts": {
+    "test": "standard && tape test/*.js | tap-spec",
+    "build": "npm run build-phaser && webpack -p",
+    "dev": "npm run build-phaser && webpack-dev-server --port 8000",
+    "build-phaser": "cd node_modules/phaser && npm install && npm run build"
+  },
+  "dependencies": {
+    "hashbow": "^1.1.1"
+  }
+}
