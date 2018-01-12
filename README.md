@@ -1,5 +1,7 @@
 # magictyper
 
+[https://flet.github.io/magictyper/](https://flet.github.io/magictyper/)
+
 WORK IN PROGRESS
 
 ## Contributing
