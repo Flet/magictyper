@@ -8,7 +8,7 @@ var HEIGHT = window.innerHeight
 
 var config = {
   type: Phaser.WEBGL,
-  parent: 'phaser-example',
+  parent: 'magictyper',
   width: WIDTH,
   height: HEIGHT,
   backgroundColor: '#2d2d2d',
