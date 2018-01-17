@@ -1,6 +1,6 @@
 /* global Phaser */
 import 'phaser'
-import * as shaders from './shaders'
+import bloom from './shaders/bloom.glsl'
 import * as keys from './keys'
 
 var WIDTH = window.innerWidth
@@ -71,9 +71,7 @@ function create () {
 
   letterGroup = this.add.group()
 
-  this.input.keyboard.events.on('KEY_DOWN_EVENT', event => {
-    if (event.data.key.length === 1) console.log('event', event.data.key, event.data.key.charCodeAt())
-    var letter = this.physics.add.sprite(keys.KEYS_X[event.data.key.toUpperCase()], HEIGHT - 30)
+  this.input.keyboard.on('keydown', function (event) {
 
     var vector = {
       x: (Math.floor((Date.now() / 200) % 10) / 200) - 0.025,
@@ -93,9 +91,9 @@ function create () {
     letter.setMass(3.5)
     state.rainbow = (state.rainbow + 1) % tints.length
     fxLayer.add(letter)
-  })
+  }.bind(this))
 
-  fxLayer = this.add.effectLayer(0, 0, WIDTH, HEIGHT, 'bloom', shaders.bloom)
+  fxLayer = this.add.effectLayer(0, 0, WIDTH, HEIGHT, 'bloom', bloom)
 
     //  Here we'll create a simple key combo
     //  When you type in ABCD the event will be triggered on the entry of the final character (D)
