@@ -129,30 +129,39 @@ function create () {
   var combos = {
     pink: function (state) {
       state.tint = tints[0]
+      state.rainbow = false
     },
     red: function (state) {
       state.tint = tints[1]
+      state.rainbow = false
     },
     orange: function (state) {
       state.tint = tints[2]
+      state.rainbow = false
     },
     yellow: function (state) {
       state.tint = tints[3]
+      state.rainbow = false
     },
     green: function (state) {
       state.tint = tints[4]
+      state.rainbow = false
     },
     blue: function (state) {
       state.tint = tints[5]
+      state.rainbow = false
     },
     purple: function (state) {
       state.tint = tints[6]
+      state.rainbow = false
     },
     grey: function (state) {
       state.tint = tints[7]
+      state.rainbow = false
     },
     white: function (state) {
       state.tint = tints[8]
+      state.rainbow = false
     },
     rainbow: function (state) {
       state.rainbow = !state.rainbow
