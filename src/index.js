@@ -1,6 +1,9 @@
 /* global Phaser */
 import 'phaser'
+import glitch from './shaders/glitch.glsl'
+import pixelate from './shaders/pixelate.glsl'
 import bloom from './shaders/bloom.glsl'
+
 import * as keys from './keys'
 
 var WIDTH = window.innerWidth
@@ -29,7 +32,10 @@ var state = {
   tint: 0x55ff55,
   rainbow: false,
   rainbowIndex: 0,
-  spin: false
+  spin: false,
+  glitch: false,
+  pixel: false,
+  time: 0
 }
 
 var tints = [
@@ -51,7 +57,7 @@ window.addEventListener('resize', onResize)
 
 window.game = new Phaser.Game(config)
 var letterGroup
-var fxLayer
+var glowLayer, glitchLayer, pixelateLayer
 
 function preload () {
   this.load.image('logo', 'assets/logo.png')
@@ -60,8 +66,7 @@ function preload () {
 
 function create () {
   state.txt = this.add.text(10, 10, 'Letters: 0')
-
-  var bumper = this.physics.add.sprite(WIDTH / 2, HEIGHT + 64, 'orange')
+  var bumper = this.matter.add.sprite(WIDTH / 2, HEIGHT + 64)
 
   bumper.setBody({
     type: 'trapezoid',
@@ -76,7 +81,8 @@ function create () {
 
   this.input.keyboard.on('keydown', function (event) {
     // if (event.key.length === 1) console.log('event', event.key, event.key.charCodeAt())
-    var letter = this.physics.add.sprite(keys.KEYS_X[event.key.toUpperCase()], HEIGHT - 30)
+
+    var letter = this.matter.add.sprite(keys.KEYS_X[event.key.toUpperCase()], HEIGHT - 30)
 
     var vector = {
       x: (Math.floor((Date.now() / 200) % 10) / 200) - 0.025,
@@ -105,10 +111,20 @@ function create () {
       letter.setTint(state.tint)
     }
 
-    fxLayer.add(letter)
+    glowLayer.add(letter)
+
+    if (state.glitch) {
+      glitchLayer.add(letter)
+    }
+
+    if (state.pixel) {
+      pixelateLayer.add(letter)
+    }
   }.bind(this))
 
-  fxLayer = this.add.effectLayer(0, 0, WIDTH, HEIGHT, 'bloom', bloom)
+  glowLayer = this.add.effectLayer(0, 0, WIDTH, HEIGHT, 'bloom', bloom)
+  glitchLayer = this.add.effectLayer(0, 0, WIDTH, HEIGHT, 'glitch', glitch)
+  pixelateLayer = this.add.effectLayer(0, 0, WIDTH, HEIGHT, 'pixelate', pixelate)
 
   var combos = {
     pink: function (state) {
@@ -144,8 +160,11 @@ function create () {
     spin: function (state) {
       state.spin = !state.spin
     },
-    fall: function (state) {
-      state.fall = !state.fall
+    glitch: function (state) {
+      state.glitch = !state.glitch
+    },
+    pixel: function (state) {
+      state.pixel = !state.pixel
     }
   }
   combos.feross = combos.spin
@@ -158,17 +177,24 @@ function create () {
   })
 
   this.input.keyboard.on('keycombomatch', function (event) {
+    console.log('combo: ', event.label)
     if (combos[event.label]) combos[event.label](state)
   })
 }
 
 function update () {
+  state.time++
   state.txt.setText('Letters: ' + letterGroup.children.size)
 
-  letterGroup.getChildren().forEach(function (c) {
+  letterGroup.getChildren().forEach(proc.bind(this))
+
+  function proc (c) {
     if (c.y > HEIGHT + 150) {
       letterGroup.remove(c)
+
+      /// HACK
+      c.body = undefined
       c.destroy()
     }
-  })
+  }
 }

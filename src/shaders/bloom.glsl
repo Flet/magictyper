@@ -17,5 +17,5 @@ void main() {
             sum += texture2D(u_sampler, texcoord + vec2(xx, yy) * 0.003) * factor;
         }
     }
-    gl_FragColor = sum * 0.025 + texture2D(u_sampler, texcoord);
+    gl_FragColor = sum * 0.012 + texture2D(u_sampler, texcoord);
 }
