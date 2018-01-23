@@ -29,26 +29,30 @@ var config = {
 }
 
 var state = {
-  tint: 0x55ff55,
-  rainbow: false,
+  color: 'green',
+  mods: {
+    rainbow: false,
+    spin: false,
+    glitch: false,
+    pixel: false
+  },
   rainbowIndex: 0,
-  spin: false,
-  glitch: false,
-  pixel: false,
-  time: 0
+  combomatch: false
 }
 
-var tints = [
-  0xff70ff, // pink
-  0xff5555, // red
-  0xff8844, // orange
-  0xffff55, // yellow
-  0x55ff55, // green
-  0x00ffff, // blue
-  0x775599, // purple
-  0x555555, // grey
-  0xffffff // white
-]
+var colors = {
+  pink: 0xff70ff,
+  red: 0xff5555,
+  orange: 0xff8844,
+  yellow: 0xffff55,
+  green: 0x55ff55,
+  blue: 0x00ffff,
+  purple: 0x775599,
+  grey: 0x555555,
+  white: 0xffffff
+}
+
+var rainbowPattern = Object.values(colors)
 
 function onResize () {
   window.location.reload() // HACK: waiting for ScaleManager :)
@@ -58,6 +62,8 @@ window.addEventListener('resize', onResize)
 window.game = new Phaser.Game(config)
 var letterGroup
 var glowLayer, glitchLayer, pixelateLayer
+var particles
+var allCombos = []
 
 function preload () {
   this.load.image('logo', 'assets/logo.png')
@@ -65,7 +71,7 @@ function preload () {
 }
 
 function create () {
-  state.txt = this.add.text(10, 10, 'Letters: 0')
+  state.txt = this.add.text(10, 10, '')
   var bumper = this.matter.add.sprite(WIDTH / 2, HEIGHT + 64)
 
   bumper.setBody({
@@ -79,7 +85,21 @@ function create () {
 
   letterGroup = this.add.group()
 
-  this.input.keyboard.on('keydown', function (event) {
+  particles = this.add.particles('letters')
+  var comboEmitter = particles.createEmitter({
+    frame: '42.png',
+    tint: 0x00ffff,
+    lifespan: 300,
+    scale: { start: 0.5, end: 0.1 },
+    speed: { min: 200, max: 400 },
+    angle: { min: 200, max: 300 },
+    quantity: 10,
+    on: false
+  })
+
+  this.input.keyboard.on('keyup', function (event) {
+    var isPartOfCombo = allCombos.some(function (c) { return c.progress > 0 })
+
     // if (event.key.length === 1) console.log('event', event.key, event.key.charCodeAt())
 
     var letter = this.matter.add.sprite(keys.KEYS_X[event.key.toUpperCase()], HEIGHT - 30)
@@ -88,8 +108,8 @@ function create () {
       x: (Math.floor((Date.now() / 200) % 10) / 200) - 0.025,
       y: -1 * (HEIGHT / 3200)
     }
-
-    letter.setTexture('letters', event.key.charCodeAt() + '.png')
+    var textureName = event.key.charCodeAt() + '.png'
+    letter.setTexture('letters', textureName)
     letter.setSizeToFrame()
     letter.setOrigin()
     letter.setBody(letter.x, letter.y, letter.width, letter.height)
@@ -97,28 +117,38 @@ function create () {
     letter.applyForce(vector)
     letter.setFriction(0.001, 0, 0)
     letter.setBounce(0.9)
-    if (state.spin) {
+    if (state.mods.spin) {
       letter.setAngularVelocity((Math.random() / 2) * (Math.random() < 0.5 ? -1 : 1))
     }
     letterGroup.add(letter)
     letter.setDensity(letter.body.density * 1.8)
-    if (letter.body.mass < 2.5) letter.setMass(2.5)
+    if (letter.body.mass < 2.7) letter.setMass(2.7)
 
-    if (state.rainbow) {
-      letter.setTint(tints[state.rainbowIndex])
-      state.rainbowIndex = (state.rainbowIndex + 1) % tints.length
+    if (state.mods.rainbow) {
+      letter.setTint(rainbowPattern[state.mods.rainbowIndex])
+      state.mods.rainbowIndex = (state.mods.rainbowIndex + 1) % rainbowPattern.length
     } else {
-      letter.setTint(state.tint)
+      letter.setTint(colors[state.color])
     }
 
     glowLayer.add(letter)
 
-    if (state.glitch) {
+    if (state.mods.glitch) {
       glitchLayer.add(letter)
     }
 
-    if (state.pixel) {
+    if (state.mods.pixel) {
       pixelateLayer.add(letter)
+    }
+
+    if (isPartOfCombo) {
+      comboEmitter.emitParticleAt(letter.x, letter.y + 40)
+    }
+
+    if (state.combomatch) {
+      // triggered when a combo has been matched
+      state.combomatch = false
+      comboEmitter.emitParticleAt(letter.x, letter.y + 40)
     }
   }.bind(this))
 
@@ -128,52 +158,52 @@ function create () {
 
   var combos = {
     pink: function (state) {
-      state.tint = tints[0]
-      state.rainbow = false
+      state.color = 'pink'
+      state.mods.rainbow = false
     },
     red: function (state) {
-      state.tint = tints[1]
-      state.rainbow = false
+      state.color = 'red'
+      state.mods.rainbow = false
     },
     orange: function (state) {
-      state.tint = tints[2]
-      state.rainbow = false
+      state.color = 'orange'
+      state.mods.rainbow = false
     },
     yellow: function (state) {
-      state.tint = tints[3]
-      state.rainbow = false
+      state.color = 'yellow'
+      state.mods.rainbow = false
     },
     green: function (state) {
-      state.tint = tints[4]
-      state.rainbow = false
+      state.color = 'green'
+      state.mods.rainbow = false
     },
     blue: function (state) {
-      state.tint = tints[5]
-      state.rainbow = false
+      state.color = 'blue'
+      state.mods.rainbow = false
     },
     purple: function (state) {
-      state.tint = tints[6]
-      state.rainbow = false
+      state.color = 'purple'
+      state.mods.rainbow = false
     },
     grey: function (state) {
-      state.tint = tints[7]
-      state.rainbow = false
+      state.color = 'grey'
+      state.mods.rainbow = false
     },
     white: function (state) {
-      state.tint = tints[8]
-      state.rainbow = false
+      state.color = 'white'
+      state.mods.rainbow = false
     },
     rainbow: function (state) {
-      state.rainbow = !state.rainbow
+      state.mods.rainbow = !state.mods.rainbow
     },
     spin: function (state) {
-      state.spin = !state.spin
+      state.mods.spin = !state.mods.spin
     },
     glitch: function (state) {
-      state.glitch = !state.glitch
+      state.mods.glitch = !state.mods.glitch
     },
     pixel: function (state) {
-      state.pixel = !state.pixel
+      state.mods.pixel = !state.mods.pixel
     }
   }
   combos.feross = combos.spin
@@ -182,24 +212,37 @@ function create () {
 
   var self = this
   Object.keys(combos).forEach(function (combo) {
-    self.input.keyboard.createCombo(combo, {resetOnMatch: true}).label = combo
+    var comboInstance = self.input.keyboard.createCombo(combo, {resetOnMatch: true})
+    comboInstance.label = combo
+    allCombos.push(comboInstance)
   })
 
   this.input.keyboard.on('keycombomatch', function (event) {
     console.log('combo: ', event.label)
     if (combos[event.label]) combos[event.label](state)
+    state.combomatch = true
   })
 }
 
 function update () {
-  state.time++
-  state.txt.setText('Letters: ' + letterGroup.children.size)
+  var text = !state.mods.rainbow ? state.color !== 'green' ? state.color : '' : ''
+
+  text = Object.keys(state.mods).reduce(showMods, text)
+
+  state.txt.setText(text)
 
   letterGroup.getChildren().forEach(proc.bind(this))
+}
 
-  function proc (c) {
-    if (c.y > HEIGHT + 150) {
-      letterGroup.remove(c)
-    }
+function proc (c) {
+  if (c.y > HEIGHT + 150) {
+    letterGroup.remove(c)
   }
+}
+
+function showMods (txt, key) {
+  if (state.mods[key]) {
+    txt = txt + ' ' + key
+  }
+  return txt
 }
