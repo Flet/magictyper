@@ -191,10 +191,6 @@ function update () {
   function proc (c) {
     if (c.y > HEIGHT + 150) {
       letterGroup.remove(c)
-
-      /// HACK
-      c.body = undefined
-      c.destroy()
     }
   }
 }
