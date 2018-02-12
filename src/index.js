@@ -63,14 +63,18 @@ window.game = new Phaser.Game(config)
 var letterGroup
 var glowLayer, glitchLayer, pixelateLayer
 var particles
+var type
 var allCombos = []
 
 function preload () {
   this.load.image('logo', 'assets/logo.png')
   this.load.atlas('letters', 'assets/letters.png', 'assets/letters.json')
+  this.load.audio('type', 'assets/type.mp3')
 }
 
 function create () {
+  type = this.sound.add('type')
+
   state.txt = this.add.text(10, 10, '')
   var bumper = this.matter.add.sprite(WIDTH / 2, HEIGHT + 64)
 
@@ -97,7 +101,7 @@ function create () {
     on: false
   })
 
-  this.input.keyboard.on('keyup', function (event) {
+  this.input.keyboard.on('keydown', function (event) {
     var isPartOfCombo = allCombos.some(function (c) { return c.progress > 0 })
 
     // if (event.key.length === 1) console.log('event', event.key, event.key.charCodeAt())
@@ -150,6 +154,12 @@ function create () {
       state.combomatch = false
       comboEmitter.emitParticleAt(letter.x, letter.y + 40)
     }
+    type.play()
+
+    // update text display
+    var text = !state.mods.rainbow ? state.color !== 'green' ? state.color : '' : ''
+    text = Object.keys(state.mods).reduce(showMods, text)
+    state.txt.setText(text)
   }.bind(this))
 
   glowLayer = this.add.effectLayer(0, 0, WIDTH, HEIGHT, 'bloom', bloom)
@@ -225,17 +235,11 @@ function create () {
 }
 
 function update () {
-  var text = !state.mods.rainbow ? state.color !== 'green' ? state.color : '' : ''
-
-  text = Object.keys(state.mods).reduce(showMods, text)
-
-  state.txt.setText(text)
-
   letterGroup.getChildren().forEach(proc.bind(this))
 }
 
 function proc (c) {
-  if (c.y > HEIGHT + 150) {
+  if (c.y > HEIGHT + 100) {
     letterGroup.remove(c)
   }
 }
