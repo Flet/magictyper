@@ -14,7 +14,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.glsl$/, // import .glsl files as strings
+        test: [/\.vert$/, /\.frag$/, /\.glsl$/], // import .glsl files as strings
         use: 'raw-loader'
       }
     ]
