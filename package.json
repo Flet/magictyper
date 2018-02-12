@@ -7,13 +7,13 @@
   },
   "devDependencies": {
     "gh-pages": "^1.1.0",
-    "phaser": "^3.0.0-beta.19",
+    "phaser": "^3.0.0-beta.20",
     "raw-loader": "^0.5.1",
     "standard": "*",
     "tap-spec": "^4.0.2",
     "tape": "^4.0.0",
-    "webpack": "^3.10.0",
-    "webpack-dev-server": "^2.11.0"
+    "webpack": "^3.11.0",
+    "webpack-dev-server": "^2.11.1"
   },
   "homepage": "https://github.com/Flet/magictyper",
   "keywords": [],
