@@ -17,8 +17,7 @@ var config = {
   backgroundColor: '#2d2d2d',
   scene: {
     preload: preload,
-    create: create,
-    update: update
+    create: create
   },
   physics: {
     default: 'matter',
@@ -61,7 +60,7 @@ window.addEventListener('resize', onResize)
 
 window.game = new Phaser.Game(config)
 var letterGroup
-var glowLayer, glitchLayer, pixelateLayer
+// var glowLayer, glitchLayer, pixelateLayer
 var particles
 var type
 var allCombos = []
@@ -102,11 +101,11 @@ function create () {
   })
 
   this.input.keyboard.on('keydown', function (event) {
-    var isPartOfCombo = allCombos.some(function (c) { return c.progress > 0 })
-
     // if (event.key.length === 1) console.log('event', event.key, event.key.charCodeAt())
 
-    var letter = this.matter.add.sprite(keys.KEYS_X[event.key.toUpperCase()], HEIGHT - 30)
+    var eventKey = keys.KEYS_X[event.key.toUpperCase()]
+    if (!eventKey) return
+    var letter = this.matter.add.sprite(eventKey, HEIGHT - 30)
 
     var vector = {
       x: (Math.floor((Date.now() / 200) % 10) / 200) - 0.025,
@@ -126,6 +125,12 @@ function create () {
     }
     letterGroup.add(letter)
     letter.setDensity(letter.body.density * 1.8)
+
+    letter.preUpdate = function (time, delta) {
+      if (this.y > HEIGHT + 100) this.destroy()
+    }
+    this.sys.updateList.add(letter)
+
     if (letter.body.mass < 2.7) letter.setMass(2.7)
 
     if (state.mods.rainbow) {
@@ -134,7 +139,7 @@ function create () {
     } else {
       letter.setTint(colors[state.color])
     }
-
+/*
     glowLayer.add(letter)
 
     if (state.mods.glitch) {
@@ -144,27 +149,27 @@ function create () {
     if (state.mods.pixel) {
       pixelateLayer.add(letter)
     }
+*/
+    setImmediate(function () {
+      // done as setImmediate to ensure combos are calcuated in KeyCombo keydown event
+      var isPartOfCombo = allCombos.some(function (c) { return c.progress > 0 })
+      if (isPartOfCombo) {
+        comboEmitter.emitParticleAt(letter.x, letter.y + 40)
+      }
 
-    if (isPartOfCombo) {
-      comboEmitter.emitParticleAt(letter.x, letter.y + 40)
-    }
+      if (state.combomatch) {
+        // triggered when a combo has been matched
+        state.combomatch = false
+        comboEmitter.emitParticleAt(letter.x, letter.y + 40)
+      }
+    })
 
-    if (state.combomatch) {
-      // triggered when a combo has been matched
-      state.combomatch = false
-      comboEmitter.emitParticleAt(letter.x, letter.y + 40)
-    }
     type.play()
-
-    // update text display
-    var text = !state.mods.rainbow ? state.color !== 'green' ? state.color : '' : ''
-    text = Object.keys(state.mods).reduce(showMods, text)
-    state.txt.setText(text)
   }.bind(this))
 
-  glowLayer = this.add.effectLayer(0, 0, WIDTH, HEIGHT, 'bloom', bloom)
-  glitchLayer = this.add.effectLayer(0, 0, WIDTH, HEIGHT, 'glitch', glitch)
-  pixelateLayer = this.add.effectLayer(0, 0, WIDTH, HEIGHT, 'pixelate', pixelate)
+  // glowLayer = this.add.effectLayer(0, 0, WIDTH, HEIGHT, 'bloom', bloom)
+  // glitchLayer = this.add.effectLayer(0, 0, WIDTH, HEIGHT, 'glitch', glitch)
+  // pixelateLayer = this.add.effectLayer(0, 0, WIDTH, HEIGHT, 'pixelate', pixelate)
 
   var combos = {
     pink: function (state) {
@@ -231,17 +236,16 @@ function create () {
     console.log('combo: ', event.label)
     if (combos[event.label]) combos[event.label](state)
     state.combomatch = true
+
+    // update text display
+    state.txt.setText(calcModsText(state))
   })
 }
 
-function update () {
-  letterGroup.getChildren().forEach(proc.bind(this))
-}
-
-function proc (c) {
-  if (c.y > HEIGHT + 100) {
-    letterGroup.remove(c)
-  }
+function calcModsText (state) {
+  var text = !state.mods.rainbow ? state.color !== 'green' ? state.color : '' : ''
+  text = Object.keys(state.mods).reduce(showMods, text)
+  return text
 }
 
 function showMods (txt, key) {
